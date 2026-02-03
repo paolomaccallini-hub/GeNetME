@@ -1,13 +1,13 @@
-# Gene-network meta-analysis of prioritized genes from two cohorts of ME/CFS patients
+# Gene-network meta-analysis of prioritised genes from two cohorts of ME/CFS patients
 
 ## Abstract
 
 **Background**: Myalgic Encephalomyelitis/Chronic Fatigue Syndrome (ME/CFS) is a complex, multifactorial disease with poorly understood aetiology and pathophysiology. 
 
 **Results**: I developed MetaME-GeNet, an R-based workflow for meta-analysis of ME/CFS gene sets through protein–protein interaction (PPI) networks. 
-Two independently published ME/CFS gene modules were merged into a disease module comprising 369 genes. One module derived from whole-genome sequencing (WGS) with deep learning prioritization of rare variants (464 cases); the other from combinatorial analysis of the DecodeME dataset (N = 14,767). The two gene sets converge to a connected graph of 276 genes that includes 112 of the 115 genes prioritized from WGS data and 168 of the 259 genes (64%) prioritized from DecodeME data. Tissue analysis reveals enrichment in genes expressed in the brain cortex, while cellular component analysis points to synapses in general, and to asymmetric synapses in particular (the most common excitatory synapses of the brain). This analysis shows a substantial overlap with the results of a previous meta-GWAS analysis on 21,500 ME/CFS cases ([Maccallini P 2025](https://github.com/paolomaccallini-hub/MetaME)). A comparative study with a prior proteomics dataset revealed modest overlap. Also, I show how to use this disease module to help prioritizing candidate genes in a suspected case of Mendelian ME/CFS. 
+Two independently published ME/CFS gene modules were merged into a disease module comprising 369 genes. One module derived from whole-genome sequencing (WGS) with deep-learning prioritisation of rare variants (464 cases); the other from combinatorial analysis of the DecodeME dataset (N = 14,767). The two gene sets converge to a connected graph of 276 genes, which includes 112 of the 115 genes prioritised from WGS data and 168 of the 259 genes (64%) prioritised from DecodeME data. Tissue analysis reveals enrichment in genes expressed in the brain cortex; cellular component analysis points to synapses in general, and to asymmetric synapses in particular (the most common excitatory synapses of the brain). This analysis shows a substantial overlap with the results of a previous meta-GWAS analysis on 21,500 ME/CFS cases ([Maccallini P 2025](https://github.com/paolomaccallini-hub/MetaME)). A comparative study with a prior proteomics dataset revealed modest overlap. Also, I show how to use this disease module to help prioritise candidate genes in a suspected case of Mendelian ME/CFS. 
 
-**Conclusions**: MetaME-GeNet provides a systematic approach for integrating heterogeneous gene prioritization results into a unified functional network framework. Application to ME/CFS data shows significant enrichment in cortical tissue, and suggests a potential involvement of neuronal synapses in the pathological mechanism of the disease.
+**Conclusions**: MetaME-GeNet provides a systematic approach for integrating heterogeneous gene prioritisation results into a unified functional network framework. Application to ME/CFS data shows significant enrichment in cortical tissue and suggests a potential involvement of neuronal synapses in the disease mechanism.
 
 ## Methods
 
@@ -27,7 +27,7 @@ NCBI Entrez Gene IDs were assigned using a local NCBI gene_info database, which 
 
 ### Gene-network analysis
 
-PPIs from STRING v12.0 are stored in a squared, symmetric matrix. Component analysis, degree assignment, and plotting is performed using the R package igraph. STRING is a PPI database that integrates evidence from gene expression, proteomics, curated databases, and text mining ([Szklarczyk D 2023](https://pubmed.ncbi.nlm.nih.gov/36370105/)).
+PPIs from STRING v12.0 are stored in a square, symmetric matrix. Component analysis, degree assignment, and plotting is performed using the R package igraph. STRING is a PPI database that integrates evidence from gene expression, proteomics, curated databases, and text mining ([Szklarczyk D 2023](https://pubmed.ncbi.nlm.nih.gov/36370105/)).
 
 ### Over-representation analysis
 
@@ -41,22 +41,22 @@ Pathway, tissue, disease, and cellular component enrichment analysis were perfor
 |TissueEnrich    |teEnrichment() | Human Protein Atlas | ([Ashish J 2019](https://pubmed.ncbi.nlm.nih.gov/30346488/)) |
 |ClusterProfile  |enrichGO()  |GeneOntoogy | ([Yu G 2012](https://pmc.ncbi.nlm.nih.gov/articles/PMC3339379/)) |
 
-The background universe consisted of all STRING genes successfully mapped to Entrez IDs (size = 19,338). Multiple testing correction was applied using the Benjamini–Hochberg procedure, and only terms with adjusted p ≤ 0.05 were retained. Visualization of genes mapped to terms, was performed by function GOchord of package GOPlot.  
+The background universe consisted of all STRING genes successfully mapped to Entrez IDs (size = 19,338). Multiple testing correction was applied using the Benjamini–Hochberg procedure, and only terms with adjusted p ≤ 0.05 were retained. Visualization of genes mapped to terms was performed by function GOchord of package GOPlot.  
 
-### Prioritization of causal variants in a proband suspected of Mendelian ME/CFS
+### Prioritisation of causal variants in a proband suspected of Mendelian ME/CFS
 
-WGS analysis of a proband with ME/CFS since his early twenties and of three second-degree healthy relatives, led to prioritization of several SNVs distributed on 12 genes and SVs, distributed on 9 genes ([Maccallini 2025](https://www.academia.edu/128882422/A_pipeline_for_the_discovery_of_causal_variants_in_Mendelian_diseases)). For each candidate gene, we derived all the interacting genes with a PPI probability above 0.4. Then we built a score, for each candidate, by summing up the PPI probability of the interacting genes included in the disease module of Figure 1. The resulting score is then divided by the total number of interacting genes, to penalize genes with a higher number of interactions. Each gene is considered to interact with itself with a PPI score of 1. The same algorithm was applied to 1000 random genes from STRING data base, to derive a distribution to be used for one-tailed statistical test to assess score significance. 
+WGS analysis of a proband with ME/CFS since his early twenties and of three second-degree healthy relatives led to prioritisation of several SNVs distributed on 12 genes and SVs, distributed on 9 genes ([Maccallini 2025](https://www.academia.edu/128882422/A_pipeline_for_the_discovery_of_causal_variants_in_Mendelian_diseases)). For each candidate gene, we derived all the interacting genes with a PPI probability above 0.4. Then we built a score for each candidate by summing up the PPI probability of the interacting genes included in the disease module of Figure 1. The resulting score is then divided by the total number of interacting genes to penalize genes with a higher number of interactions. Each gene is considered to interact with itself with a PPI score of 1. The same algorithm was applied to 1000 random genes from STRING data base, to derive a distribution to be used for a one-tailed statistical test to assess score significance. 
 
 ## Results
 
 ### Gene overlap and gene-network representation
 
-The union of the two gene sets generates a list of 369 genes (Figure 1). The overlap between the two gene sets is of four genes, namely MAX, NEDD9, DLGAP2, and GABBR. While the overlap is not statistically significant (p-value of 0.064, by hypergeometric test on a universe of 19,338 genes), the two gene sets converge to a connected graph of 276 genes that includes 112 of the 115 genes prioritized by Zhang and colleagues and 168 of the 259 genes (64%) prioritized by Precision Life. 
+The union of the two gene sets generates a list of 369 genes (Figure 1). The overlap between the two gene sets is of four genes, namely MAX, NEDD9, DLGAP2, and GABBR. While the overlap is not statistically significant (p-value of 0.064, by hypergeometric test on a universe of 19,338 genes), the two gene sets converge to a connected graph of 276 genes that includes 112 of the 115 genes prioritised by Zhang and colleagues and 168 of the 259 genes (64%) prioritised by Precision Life. 
 
 ![All_genes_graph](https://github.com/user-attachments/assets/2b5d4f66-04e7-4a2d-9157-ccf6edbbe124)
 
 <p align="left">
-  <em>Figure 1. Protein-protein interactions for the genes prioritized by Precision Life (PL) by combinatorial analysis using DecodeME GWAS data (green) and by Zhang and colleges by deep learning on WGS from 464 ME/CFS cases (red). Overlapping genes are in white. The edges represents STRING interactions with a probability above 0.4 and their length is proportional to the probability of interaction. This lists includes a total of 369 elements. </em>
+  <em>Figure 1. Protein-protein interactions for the genes prioritised by Precision Life (PL) by combinatorial analysis using DecodeME GWAS data (green) and by Zhang and colleagues by deep learning on WGS from 464 ME/CFS cases (red). Overlapping genes are in white. The edges represents STRING interactions with a probability above 0.4, and their length is proportional to the probability of interaction. This list includes a total of 369 elements. </em>
 </p>
 
 The list of 369 genes, with NCBI Entrez ID and STRING preferred name, is included in this repository (see `all_genes.tsv`). Also, the columns indicate the component they belong to and a score derived from their degree (average PPI score) normalized between zero and one. The same list is included in a format that can be used on Cytoscape (`All_genes_cytoscape.tsv`).
@@ -91,7 +91,7 @@ We used Gene Ontology Cellular Component (GO CC) to further specify the result o
 ![GO enrichment](https://github.com/user-attachments/assets/a0162a7a-c52f-4dd6-9738-83e21e5addf3)
 
 <p align="left">
-  <em>Figure 3. Gene Ontology Cellular Component over-representation analysis of the 369 genes of Figure 1, with a background universe of 19699 genes. Top ten results, after Benjamini-Hochberg correction. See ORA_Disease_Module.tsv for the full list significant results. </em>
+  <em>Figure 3. Gene Ontology Cellular Component over-representation analysis of the 369 genes of Figure 1, with a background universe of 19699 genes. Top ten results, after Benjamini-Hochberg correction. See ORA_Disease_Module.tsv for the full list of significant results. </em>
 </p>
 
 ### Disease Ontology and KEGG
@@ -113,15 +113,15 @@ ORA on KEGG identifies `Spincerebellar ataxia` as top enrichment (see Figure 4).
 
 ### Comparison with proteomic results
 
-I compared the 369 genes of Figure 1 with the results of a proteomic study on 171 ME/CFS cases and 13,883 controls over 2895 proteins. The overlap with the proteins significantly associated with ME/CFS (total effect) is of 7 proteins, which is not statistically significant by hypergeometric test, as indicated in the table below.
+I compared the 369 genes of Figure 1 with the results of a proteomic study on 171 ME/CFS cases and 13,883 controls over 2895 proteins. The overlap with the proteins significantly associated with ME/CFS (total effect) is of 7 proteins, which is not statistically significant by the hypergeometric test, as indicated in the table below.
 
 | setA       | setB        | sizeA | sizeB | overlap | background | pvalue  | genes                                              |
 |------------|-------------|-------|-------|---------|------------|---------|----------------------------------------------------|
 | ME Module  | Proteomics  | 76    | 233   | 7       | 2895       | 4.13e-01| CD22/COLEC12/DDAH1/LEP/NTRK3/PALM2AKAP2/VIT          |
 
-### Prioritization of causal variants in a proband suspected of Mendelian ME/CFS
+### Prioritisation of causal variants in a proband suspected of Mendelian ME/CFS
 
-WGS analysis of a proband with ME/CFS since his early twenties and of three second-degree healthy relatives, led to prioritization of several SNVs distributed on 12 genes, and SVs distributed on 9 genes ([Maccallini 2025](https://www.academia.edu/128882422/A_pipeline_for_the_discovery_of_causal_variants_in_Mendelian_diseases)). For each gene, a score and a relative p-value for interaction with the Disease Module of ME/CFS was calculate and a correction for multiple comparisons was applied (Bonferroni). The distribution of the score for 1000 random genes from STRING database is reported in Figure 5.
+WGS analysis of a proband with ME/CFS since his early twenties and of three second-degree healthy relatives, led to prioritization of several SNVs distributed on 12 genes, and SVs distributed on 9 genes ([Maccallini 2025](https://www.academia.edu/128882422/A_pipeline_for_the_discovery_of_causal_variants_in_Mendelian_diseases)). For each gene, a score and a relative p-value for interaction with the Disease Module of ME/CFS was calculate and a correction for multiple comparisons was applied (Bonferroni). The distribution of the score for 1000 random genes from the STRING database is reported in Figure 5.
 
 <img width="862" height="520" alt="image" src="https://github.com/user-attachments/assets/634d0197-96fa-4b66-96a4-2ed6ecfcdc66" />
 
