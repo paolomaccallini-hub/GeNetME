@@ -53,7 +53,7 @@ WGS analysis of a proband with ME/CFS since his early twenties and of three seco
 
 The union of the two gene sets generates a list of 369 genes (Figure 1). The overlap between the two gene sets is of four genes, namely MAX, NEDD9, DLGAP2, and GABBR. While the overlap is not statistically significant (p-value of 0.064, by hypergeometric test on a universe of 19,338 genes), the two gene sets converge to a connected graph of 276 genes that includes 112 of the 115 genes prioritised by Zhang and colleagues and 168 of the 259 genes (64%) prioritised by Precision Life. 
 
-<img src="Output/All_genes_graph.jpeg" width="600"/>
+<img src="Output/All_genes_graph.jpeg" width="800"/>
 <p align="left">
   <em>Figure 1. Protein-protein interactions for the genes prioritised by Precision Life (PL) by combinatorial analysis using DecodeME GWAS data (green) and by Zhang and colleagues by deep learning on WGS from 464 ME/CFS cases (red). Overlapping genes are in white. The edges represent STRING interactions with a probability above 0.4, and their length is proportional to the probability of interaction. This list includes a total of 369 elements. </em>
 </p>
@@ -71,7 +71,7 @@ The results of over-representation analysis of the 369 genes of Figure 1 over th
 
 ### Cellular-Component analysis
 
-We used Gene Ontology Cellular Component (GO CC) to further specify the result of tissue-enrichment. Below and in Figure 3, we report the top 10 results from GO CC enrichment. For the complete results, including also KEGG, Reactome, and Dsease Ontology, see file `ORA_Disease_Module.tsv`.
+We used Gene Ontology Cellular Component (GO CC) to further specify the result of tissue-enrichment. Below and in Figure 3, we report the top 10 results from GO CC enrichment. For the complete results, including also KEGG, Reactome, and Disease Ontology, see file `ORA_Disease_Module.tsv`.
 
 | ID          | Description                                     | GeneRatio | pvalue           | p.adjust         
 |------------|-------------------------------------------------|-----------|-----------------|-----------------|
@@ -86,7 +86,7 @@ We used Gene Ontology Cellular Component (GO CC) to further specify the result o
 | GO:0031594 | neuromuscular junction                           | 8/350     | 1.27e-04        | 0.00608         | 
 | GO:0071339 | MLL1 complex                                    | 5/350     | 2.91e-04        | 0.0125          | 
 
-<img src="PF_output/ORA/GO enrichment.jpeg" width="600"/>
+<img src="Output/ORA/GO enrichment.jpeg" width="600"/>
 <p align="left">
   <em>Figure 3. Gene Ontology Cellular Component over-representation analysis of the 369 genes of Figure 1, with a background universe of 19699 genes. Top ten results, after Benjamini-Hochberg correction. See ORA_Disease_Module.tsv for the full list of significant results. </em>
 </p>
