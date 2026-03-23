@@ -53,18 +53,18 @@ WGS analysis of a proband with ME/CFS since his early twenties and of three seco
 
 The union of the two gene sets generates a list of 369 genes (Figure 1). The overlap between the two gene sets is of four genes, namely MAX, NEDD9, DLGAP2, and GABBR. While the overlap is not statistically significant (p-value of 0.064, by hypergeometric test on a universe of 19,338 genes), the two gene sets converge to a connected graph of 276 genes that includes 112 of the 115 genes prioritised by Zhang and colleagues and 168 of the 259 genes (64%) prioritised by Precision Life. 
 
-<img src="main/Output/All_genes_graph.jpeg" width="600"/>
+<img src="Output/All_genes_graph.jpeg" width="600"/>
 <p align="left">
-  <em>Figure 1. Protein-protein interactions for the genes prioritised by Precision Life (PL) by combinatorial analysis using DecodeME GWAS data (green) and by Zhang and colleagues by deep learning on WGS from 464 ME/CFS cases (red). Overlapping genes are in white. The edges represents STRING interactions with a probability above 0.4, and their length is proportional to the probability of interaction. This list includes a total of 369 elements. </em>
+  <em>Figure 1. Protein-protein interactions for the genes prioritised by Precision Life (PL) by combinatorial analysis using DecodeME GWAS data (green) and by Zhang and colleagues by deep learning on WGS from 464 ME/CFS cases (red). Overlapping genes are in white. The edges represent STRING interactions with a probability above 0.4, and their length is proportional to the probability of interaction. This list includes a total of 369 elements. </em>
 </p>
 
 The list of 369 genes, with NCBI Entrez ID and STRING preferred name, is included in this repository (see `all_genes.tsv`). Also, the columns indicate the component they belong to and a score derived from their degree (average PPI score), normalised between zero and one. The same list is included in a format that can be used on Cytoscape (`All_genes_cytoscape.tsv`).
 
 ### Tissue-enrichment analysis
 
-The results of over-representation analysis of the 369 genes of Figure 1 over the HUman Protein Atlas database, gives Figure 2. 
+The results of over-representation analysis of the 369 genes of Figure 1 over the Human Protein Atlas database, give Figure 2. 
 
-<img src="Output/ORA/Tissue_ORA.jpeg" width="600"/>
+<img src="Output/ORA/Tissue_ORA.jpeg" width="800"/>
 <p align="left">
   <em>Figure 2. Tissue-enrichment analysis by hypergeometric test of the 369 genes of Figure 1 against the Human Protein Atlas (HPA) database, with a background universe of 19699 genes. </em>
 </p>
