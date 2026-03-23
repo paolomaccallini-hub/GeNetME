@@ -145,7 +145,7 @@ Zhang module: genes filtered at `q_value < 0.02`. Sardell module: all genes from
 ## Output
 
 ```
-PF_output/
+Output/
 ├── Disease_results_list.rds          # Checkpoint: disease module data frame + adjacency matrix
 ├── All_genes_graph.tiff / .jpeg      # PPI network figure
 ├── All_genes_cytoscape.tsv           # Edge list for Cytoscape import
@@ -184,15 +184,3 @@ PF_output/
 GPL-3.0. See [LICENSE](LICENSE).
 
 ---
-
-## Citation
-
-If you use this code, please cite:
-
-> Maccallini P (2025). *GeNetME: Gene-network meta-analysis for ME/CFS* (Version X.X.X) [Software]. Zenodo. https://doi.org/XXXXXXX
-
-Related repositories:
-
-- [MetaME](https://github.com/paolomaccallini-hub/MetaME) — GWAS meta-analysis pipeline
-- [MetaME-GeNet](https://github.com/paolomaccallini-hub/MetaME-GeNet) — Gene network construction from GWAS results
-- [CompareME](https://github.com/paolomaccallini-hub/CompareME) — Cross-disease comparison pipeline
