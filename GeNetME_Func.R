@@ -9,51 +9,57 @@ set.seed(12345) # to make results reproducible
 #
 # Load libraries
 #
-library(clusterProfiler)
-library(data.table)
-library(DOSE)
-library(enrichplot)
-library(ggplot2)
-library(GOplot)
+library(dplyr) 
+library(rentrez) 
 library(httr)
-library(igraph)
 library(jsonlite)
-library(magick)
-library(Matrix)
+library(curl)
+library(biomaRt)
+library(stringr)
+library(DOSE)
+library(stats)
+library(rstatix)
+library(ReactomePA)
+library(igraph)
+library(MASS)
+library(data.table)
+library(clusterProfiler)
+library(stats)
 library(org.Hs.eg.db)
 library(pathview)
-library(ReactomePA)
-library(readxl)
-library(stringr)
+library(enrichplot)
+library(GOplot)
+library(readxl) 
+library(writexl)
 library(TissueEnrich)
-#
-#-------------------------------------------------------------------------------
-# Parameters
-#-------------------------------------------------------------------------------
-#
-STRING.co<-0.4 # cut-off for gene interaction in STRING API and STRING data
+library(magick)
 #
 #-------------------------------------------------------------------------------
 # Create output folder, if absent
 #-------------------------------------------------------------------------------
 #
-folder_path<-file.path(current_dir,"Output")  
+current_dir<-getwd()
+folder_path<-file.path(current_dir,"PF_output")  
 if(!dir.exists(folder_path)) {
   dir.create(folder_path) 
 }
-folder_path<-file.path(current_dir,"Output/ORA")  
+current_dir<-getwd()
+folder_path<-file.path(current_dir,"PF_output/ORA")  
 if(!dir.exists(folder_path)) {
   dir.create(folder_path) 
 } 
-folder_path<-file.path(current_dir,"Output/ORA/KEGG")  
+current_dir<-getwd()
+folder_path<-file.path(current_dir,"PF_output/ORA/KEGG")  
 if(!dir.exists(folder_path)) {
   dir.create(folder_path) 
 } 
-folder_path<-file.path(current_dir,"Output/ORA/Reactome")  
+current_dir<-getwd()
+folder_path<-file.path(current_dir,"PF_output/ORA/Reactome")  
 if(!dir.exists(folder_path)) {
   dir.create(folder_path) 
 }
-folder_path<-file.path(current_dir,"Output/ORA/GO")  
+current_dir<-getwd()
+folder_path<-file.path(current_dir,"PF_output/ORA/GO")  
 if(!dir.exists(folder_path)) {
   dir.create(folder_path) 
 }
@@ -62,10 +68,12 @@ if(!dir.exists(folder_path)) {
 # Build (if necessary) and load STRING database
 #-------------------------------------------------------------------------------
 #
+current_dir<-getwd()
 folder_path<-file.path(current_dir,"Data")  
 if(!dir.exists(folder_path)) {
   dir.create(folder_path) 
 }
+current_dir<-getwd()
 folder_path<-file.path(current_dir,"Data/STRING")  
 if(!dir.exists(folder_path)) {
   dir.create(folder_path) 
@@ -117,7 +125,7 @@ colnames(STRING.names)[1]<-"string_protein_id"
 #-----------------------------------------------------------------------------
 #
 url<-paste0("https://www.medrxiv.org/content/medrxiv/early/2025/05/11/2025.04.15.25325899/DC9/embed/media-9.xlsx")
-destfile<-"media-9.xlsx"
+destfile<-"Zhang_2025.xlsx"
 file_path<-file.path(current_dir,"Data",destfile)
 if(!file.exists(file_path)) {
   print("Downloading data from Zhang S. et al. 2025 (https://pmc.ncbi.nlm.nih.gov/articles/PMC12047926/)...")
@@ -129,18 +137,40 @@ if(!file.exists(file_path)) {
     pause_min = 5,       # wait 5s between attempts
     terminate_on = c(404, 403) # don't retry on these errors
   )
-}  
+}   
 #
 #-----------------------------------------------------------------------------
-# Download ME/CFS module form Sardell JM 2025
+# Read ME/CFS module form Sardell JM 2025
 # We use supplementary table 3.
 #-----------------------------------------------------------------------------
 #
 url<-paste0("https://www.medrxiv.org/content/medrxiv/early/2025/12/03/2025.12.01.25341362/DC2/embed/media-2.xlsx")
-destfile<-"media-2.xlsx"
+destfile<-"PL_2025.xlsx"
 file_path<-file.path(current_dir,"Data",destfile)
 if(!file.exists(file_path)) {
   print("Downloading data from Sardell JM. et al. 2025 (https://www.medrxiv.org/content/10.64898/2025.12.01.25341362v2)...")
+  RETRY(
+    verb = "GET",
+    url = url,
+    write_disk(file_path, overwrite = TRUE),
+    times = 5,           # up to 5 attempts
+    pause_min = 5,       # wait 5s between attempts
+    terminate_on = c(404, 403) # don't retry on these errors
+  )
+}   
+#
+#-----------------------------------------------------------------------------
+# Read Proteomics from Bentjes SV 2025
+# We use supplementary media 6.
+#-----------------------------------------------------------------------------
+#
+# Comparison with Proteomic study (https://pmc.ncbi.nlm.nih.gov/articles/PMC12254397)
+#
+url<-paste0("https://www.medrxiv.org/content/medrxiv/early/2024/08/28/2024.08.26.24312606/DC6/embed/media-6.xlsx?download=true")
+destfile<-"Proteomics.xlsx"
+file_path<-file.path(current_dir,"Data",destfile)
+if(!file.exists(file_path)) {
+  print("Downloading data from Bentjes JM. et al. 2024 (https://www.medrxiv.org/content/10.1101/2024.08.26.24312606v1)...")
   RETRY(
     verb = "GET",
     url = url,
@@ -155,24 +185,24 @@ if(!file.exists(file_path)) {
 # Build (if necessary) and load NCBI database
 #-------------------------------------------------------------------------------
 #
+current_dir<-getwd()
 folder_path<-file.path(current_dir,"Data/NCBI")  
 if(!dir.exists(folder_path)) {
   dir.create(folder_path) 
 } 
-url <- "https://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz"
-destfile <- "gene_info.gz"
-file_path <- file.path(current_dir, "Data/NCBI/", destfile)
-if (!file.exists(file_path) & !file.exists("Data/NCBI/human_gene_info.gz")) {
-  print("Downloading NCBI database...")
-  RETRY(
-    verb = "GET",
-    url = url,
-    write_disk(file_path, overwrite = TRUE),
-    times = 5,
-    pause_min = 5,
-    terminate_on = c(404, 403)
-  )
-}
+url<-paste0("ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz")
+destfile<-"gene_info.gz"
+file_path<-file.path(current_dir,"Data/NCBI/",destfile)
+if(!file.exists(file_path)&!file.exists("Data/NCBI/human_gene_info.gz")) {
+  test<-0
+  while(test==0) {
+    print("Downloading NCBI database...")
+    attempt<-try(curl_download(url,file_path,quiet=FALSE),silent=T)
+    if (class(attempt)!="try-error") {
+      test<-1
+    }
+  }
+}   
 #
 file.name<-"Data/NCBI/human_gene_info.gz"
 if (!file.exists(file.name)) {
@@ -193,6 +223,50 @@ if (!file.exists(file.name)) {
 gc()
 #
 #-------------------------------------------------------------------------------
+# Convert gene symbol to NCBI ID (when possible)
+#-------------------------------------------------------------------------------
+#
+Symbol2NCBI<-function(gene.symbol) {
+  #
+  # print(paste("Seraching NCBI gene ID for",gene.symbol))
+  retries<-100
+  for (i in 1:retries) {
+    # Use tryCatch to catch errors and warnings
+    result<-tryCatch(
+      {
+        # Perform the search with entrez_search
+        NCBI<-lapply(gene.symbol,function(gene) {
+          search<-entrez_search(db="gene",term=paste(gene,"[Gene Name] AND human[Organism]"))
+        })
+      },
+      error = function(e) {
+        # Check if the error is HTTP 500
+        if (grepl("HTTP failure: 500", e$message)) {
+          message(paste("Attempt", i, "failed with HTTP 500. Retrying..."))
+          return(NA)
+        } else {
+          stop(e)  # Stop the loop for other errors
+        }
+      }
+    )
+    # If result is not NULL, the search was successful
+    if (!is.null(result)) {
+      if (is.list(result$ids)) {
+        return(NA)
+      } else if (is.list(NCBI[[1]]$ids[1])) {
+        return(NA)
+      } else {
+        NCBI<-NCBI[[1]]$ids[1]
+        return(NCBI)
+      }
+    }
+    # If we've reached this point, the search failed with HTTP 500.
+    # Wait before retrying
+    Sys.sleep(0.1)
+  }
+}
+#
+#-------------------------------------------------------------------------------
 # Convert gene symbol to NCBI ID using local data base (not API)
 #-------------------------------------------------------------------------------
 #
@@ -211,6 +285,64 @@ Symbol2NCBI.db<-function(gene.symbol) {
       return(as.character(NCBI.names$NCBI.id[index[1]]))
     }
   }
+}
+#
+#-------------------------------------------------------------------------------
+# Convert gene NCBI ID to gene symbol  (when possible)
+#-------------------------------------------------------------------------------
+#
+NCBI2Symbol<-function(gene.NCBI.id) {
+  #
+  retries<-100
+  for (i in 1:retries) {
+    # Use tryCatch to catch errors and warnings
+    result<-tryCatch(
+      {
+        # Perform the search with entrez_search
+        entrez_summary(db ="gene",id=gene.NCBI.id)
+      },
+      error = function(e) {
+        # Check if the error is HTTP 500
+        if (grepl("HTTP failure: 500", e$message)) {
+          message(paste("Attempt", i, "failed with HTTP 500. Retrying..."))
+          return(NULL)
+        } else {
+          stop(e)  # Stop the loop for other errors
+        }
+      }
+    )
+    # If result is not NULL, the search was successful
+    if (!is.null(result)) {
+      if (length(result$name)==0) {
+        return(NA)
+      } else {
+        return(result$name)
+      }
+    }
+    # If we've reached this point, the search failed with HTTP 500.
+    # Wait before retrying
+    Sys.sleep(0)
+  }
+}  
+#
+#-------------------------------------------------------------------------------
+# Convert NCBI ID to ENSG ID (when possible)
+#-------------------------------------------------------------------------------
+#
+NCBI2ENSG<-function(NCBI.id) {
+  #
+  print(paste("Retrieving ENSG ID for", NCBI.id))
+  Sys.sleep(1)
+  mart <- useEnsembl(
+    biomart = "ensembl", 
+    dataset = "hsapiens_gene_ensembl", 
+    mirror = "www",  # Options: "uswest", "useast", "asia", "www"
+  )
+  result <- getBM(attributes = c("entrezgene_id", "ensembl_gene_id"),
+                  filters = "entrezgene_id",
+                  values = NCBI.id,
+                  mart = mart)
+  return(result$ensembl_gene_id[1])
 }
 #
 #-------------------------------------------------------------------------------
@@ -237,6 +369,55 @@ STRING.name<-function(gene) {
     stop("Failed to retrieve data. Please check the NCBI IDs and your internet connection.")
   }
   return(preferred.name)
+}
+#
+#-------------------------------------------------------------------------------
+# This function find genes that interact with the input gene, 
+# according to STRING API
+#-------------------------------------------------------------------------------
+#
+STRING<-function(gene) {
+  #
+  Sys.sleep(0.1)
+  species_id<-9606 # Homo sapiens
+  #
+  # find STRING's identifier for the inputted gene
+  #
+  gene_name<-STRING.name(gene)
+  if (is.na(gene_name)) gene_name<-"" # necessary, otherwise STRING search gene NA
+  #
+  # find interacting genes
+  #
+  base_url<-"https://string-db.org/api/json/network"
+  response<-httr::GET(base_url,query=list(identifiers=gene_name,species=species_id,
+                                          required_score=STRING.co*1000))
+  #
+  if (status_code(response)==200) {
+    # 
+    response_content<-rawToChar(response$content)
+    Encoding(response_content)<-"UTF-8"
+    data<-jsonlite::fromJSON(response_content) # parse
+    #
+    if (is.data.frame(data)>0) {
+      data<-subset.data.frame(data,score>=STRING.co)
+      data<-data.frame(name=data$preferredName_B,score=data$score)
+      #
+      # we keep for each gene only the entry with highest score
+      #
+      unique.genes<-unique(data$name) 
+      interacting_genes<-data[1:length(unique.genes),]
+      for (k in 1:length(unique.genes)) {
+        temp.df<-subset.data.frame(data,name==unique.genes[k])
+        temp.df<-temp.df[order(temp.df$score,decreasing=T),]
+        interacting_genes[k,]<-temp.df[1,]
+      }
+      return(interacting_genes)
+    } else {
+      return(NA)
+    }
+  } else {
+    return(NA)
+  }
 }
 #
 #-------------------------------------------------------------------------------
@@ -271,29 +452,84 @@ STRING2<-function(gene) {
 }
 #
 #-------------------------------------------------------------------------------
+# This function find PPI score between two given genes 
+# using STRING database (not API)
+#-------------------------------------------------------------------------------
+#
+STRING.db<-function(gene1,gene2) {
+  #
+  # find PPI score between the two genes
+  #
+  if (!is.na(gene1)&!is.na(gene2)) {
+    # find identifiers
+    df<-subset.data.frame(STRING.names,preferred_name==gene1)
+    gene1<-df$string_protein_id
+    df<-subset.data.frame(STRING.names,preferred_name==gene2)
+    gene2<-df$string_protein_id
+    # find PPI score
+    df<-subset.data.frame(STRING.matrix,protein1==gene1)
+    df<-subset.data.frame(df,protein2==gene2)
+    if (nrow(df)==1) {
+      score<-df$combined_score/1000
+    } else {
+      score<-0
+    }
+    if (score<STRING.co) {
+      score<-0
+    } 
+    return(score)
+  } else {
+    return(NA)
+  }
+}
+#
+#-------------------------------------------------------------------------------
 # For genes that appears more than once, this function generate a single row with
 # all the information and with the highest score associated to each gene
 #-------------------------------------------------------------------------------
 #  
-ListCollapse <- function(all.genes.zero) {
-  unique.genes <- unique(all.genes.zero$NCBI.id)
-  all.genes.unique <- all.genes.zero[1:length(unique.genes), ]
+ListCollapse<-function(all.genes.zero) {
+  #
+  # Indicate predicted genes and predictors
+  #
+  unique.genes<-unique(all.genes.zero$NCBI.id) # NCBI IDs of unique genes
+  all.genes.unique<-all.genes.zero[1:length(unique.genes),]
   for (i in 1:length(unique.genes)) {
-    temp <- subset.data.frame(all.genes.zero, NCBI.id == unique.genes[i])
-    all.genes.unique$NCBI.id[i]    <- temp$NCBI.id[1]
-    all.genes.unique$name[i]       <- temp$name[1]
-    all.genes.unique$list.count[i] <- length(unique(temp$list.name))
-    all.genes.unique$list.name[i]  <- paste0(unique(temp$list.name), collapse="/")
+    temp<-subset.data.frame(all.genes.zero,NCBI.id==unique.genes[i])
+    all.genes.unique$NCBI.id[i]<-temp$NCBI.id[1]
+    all.genes.unique$name[i]<-temp$name[1]
+    all.genes.unique$source[i]<-paste0(temp$source,collapse="/")
+    all.genes.unique$score[i]<-max(as.numeric(temp$score))
+    all.genes.unique$list.count[i]<-length(unique(temp$list.name))
+    all.genes.unique$list.name[i]<-paste0(unique(temp$list.name),collapse="/")
+    all.genes.unique$Predicted[i]<-paste0(temp$Predicted,collapse="/")
+    all.genes.unique$Predictor[i]<-paste0(temp$Predictor,collapse="/")
+    if (grepl("^(.)(\\1)*$",all.genes.unique$Predicted[i])) {
+      all.genes.unique$Predicted[i]<-"" # remove repetitions of "/"
+    } 
+    if (grepl("^(.)(\\1)*$",all.genes.unique$Predictor[i])) {
+      all.genes.unique$Predictor[i]<-"" # remove repetitions of "/"
+    }
+    temp.str<-all.genes.unique$Predicted[i]
+    if (substr(temp.str,1,1)=="/") {
+      all.genes.unique$Predicted[i]<-substr(temp.str,2,nchar(temp.str))
+    }
+    temp.str<-all.genes.unique$Predictor[i]
+    if (substr(temp.str,1,1)=="/") {
+      all.genes.unique$Predictor[i]<-substr(temp.str,2,nchar(temp.str))
+    }
   }
   return(all.genes.unique)
-}
+} 
 #
 #-------------------------------------------------------------------------------
 # This function build adjacency matrix from a list of genes using STRING database 
-# (not API). 
+# (not API). Faster than using STRING.db
 #-------------------------------------------------------------------------------
 #
 GeneMatrix<-function(all.genes) {
+  #
+  print(paste0("I start building gene matrix at time: ",Sys.time()))
   #
   # build a STRING database with only genes of interest and with score above STRING.co
   #
@@ -312,31 +548,186 @@ GeneMatrix<-function(all.genes) {
   #
   # build gene.matrix
   #
-  nodes<-dt.names$string_protein_id
-  i<-match(dt.matrix$protein1,nodes)
-  j<-match(dt.matrix$protein2,nodes)
+  NG<-nrow(all.genes)
+  gene.matrix<-matrix(0,nrow=NG,ncol=NG) 
+  rownames(gene.matrix)<-all.genes$name
+  colnames(gene.matrix)<-all.genes$name
   #
-  Msp<-sparseMatrix(
-    i = i, j = j, x = dt.matrix$combined_score/1000,
-    dims = c(length(nodes), length(nodes)),
-    dimnames = list(nodes, nodes)
-  )
-  #
-  gene.matrix<-as.matrix(Msp)
-  #
-  id_to_name <- dt.names$name
-  names(id_to_name) <- dt.names$string_protein_id
-  rownames(gene.matrix) <- id_to_name[rownames(gene.matrix)]
-  colnames(gene.matrix) <- id_to_name[colnames(gene.matrix)]
-  #
-  # Test symmetry and end
-  #
-  test<-isSymmetric(gene.matrix)
-  if (!test) {
-    stop("The adjacency matrix is not symmetric; there is an error!")
-  } else {
-    return(gene.matrix)  
+  time.zero<-as.numeric(Sys.time())
+  counter.zero<-0 # pair calculated at time.zero
+  todo.counter<-((NG^2)-NG)/2 # total pairs to calculate
+  for (i in 1:(NG-1)) {
+    #
+    gene1<-rownames(gene.matrix)[i]
+    #
+    # find identifier for gene 1
+    #
+    dt<-dt.names[name==gene1]
+    gene1<-dt$string_protein_id
+    #
+    # remove data we wont use (dt.matrix is symmetric!)
+    #
+    dt.matrix<-dt.matrix[protein2!=gene1]
+    #
+    for (j in (i+1):NG) {
+      #
+      gene2<-colnames(gene.matrix)[j]
+      #
+      # find identifier for gene 2
+      #
+      dt<-dt.names[name==gene2]
+      gene2<-dt$string_protein_id
+      #
+      # find PPI score
+      #
+      dt<-dt.matrix[protein1==gene1&protein2==gene2]
+      #
+      if (nrow(dt)==1) {
+        score<-dt$combined_score/1000
+      } else {
+        score<-0
+      }
+      gene.matrix[i,j]<-score
+      #
+      # give information on time necessary to finish 
+      #
+      dice<-sample(seq(1,todo.counter/20,1),1)
+      if (dice==50) {
+        done.counter<-(j-i)+(2*NG-(i-1+1))*(i-1)/2 # the number of pair calculated
+        delta.counter<-done.counter-counter.zero # pairs done from last check
+        delta.time<-as.numeric(Sys.time())-time.zero # time from last check (seconds)
+        speed<-delta.counter/delta.time # speed for pair calculation
+        time.left<-(todo.counter-done.counter)*1/speed # time remaining at current speed (seconds)
+        print(paste0("Less than ",round(time.left/60)," minutes to the end, at: ",Sys.time()))
+        counter.zero<-done.counter 
+        time.zero<-as.numeric(Sys.time())
+      }
+    }
+    #
+    # remove data already used
+    #
+    dt.matrix<-dt.matrix[protein1!=gene1]
+    dt.names<-dt.names[string_protein_id!=gene1]
   }
+  #
+  # add the lower triangle and exit
+  #
+  gene.matrix[lower.tri(gene.matrix)]<-t(gene.matrix)[lower.tri(gene.matrix)]
+  print(paste0("I ended at time: ",Sys.time()))
+  return(gene.matrix)
+}
+#
+#-------------------------------------------------------------------------------
+# This function select a subset of the adjacency matrix around a specified node.
+# A integer number is required to indicate the degree of relationship to be considered.
+# Either 1 or 2. It then plots the graph.
+#-------------------------------------------------------------------------------
+#
+SubGeneMatrix<-function(gene.matrix,name,degree) {
+  gi<-which(row.names(gene.matrix)==name)
+  index<-which(gene.matrix[gi,]!=0)
+  if (degree==1) {
+    sub.gene.matrix<-gene.matrix[index,index]
+  } else if (degree==2) {
+    index.1<-index
+    for (j in index.1) {
+      index<-c(index,which(gene.matrix[j,]!=0))
+    }
+    index<-unique(index)
+    sub.gene.matrix<-gene.matrix[index,index]
+  }
+  #
+  # Build the graph associated with the subset of gene matrix
+  #
+  graph<-graph_from_adjacency_matrix(sub.gene.matrix,mode="undirected",weighted=TRUE)
+  #
+  # Color the genes according to the corresponding Expanded Gene List (EGL)
+  #
+  all.genes<-all.genes[match(rownames(sub.gene.matrix),all.genes$name), ] # correct the order!
+  colors<-hcl.colors(nrow(list.matrix),palette="Dark 3",alpha=1)
+  vertex_colors<-c()
+  for (i in 1:nrow(all.genes)) {
+    index<-which(rownames(list.matrix)==all.genes$list.name[i])
+    if (length(index)>0) {
+      vertex_colors[i]<-colors[index]
+    }
+  }
+  index<-which(is.na(vertex_colors))
+  vertex_colors[index]<-"white"
+  #
+  # Set the color of nodel labels, to highlight seed genes
+  #
+  node.col<-rep("black",nrow(all.genes))
+  for (i in 1:nrow(all.genes)) {
+    if("seed"%in%strsplit(all.genes$source[i],"/")[[1]]) {
+      node.col[i]<-"red"
+    }
+  }
+  #
+  # Plot the image
+  #
+  tiff(paste0("PF_output/",name,"_",degree,"_graph.tiff"),width=10,height=10,units="in",res=600,compression="lzw")
+  plot(graph,
+       layout=layout_with_fr(graph,niter=30000,grid="nogrid",dim=2),
+       vertex.size=3,
+       vertex.label.cex=0.2,
+       vertex.frame.color="black",
+       vertex.color=vertex_colors,
+       vertex.label.color=node.col,
+       asp=1,
+  )
+  legend("topright",                       # or "bottomleft", etc.  
+         legend = rownames(list.matrix),   # group names
+         col = colors,                     # corresponding colors
+         pch = 21,                         # filled circle
+         pt.bg = colors,                   # fill color
+         pt.cex = 1.5,                     # size of points
+         bty = "n")                        # no box around legend
+  dev.off()
+}
+#
+#-------------------------------------------------------------------------------
+# This function build a matrix where element i-j is the number of genes in common
+# between list i and list j. It is the adjacency matrix of a weighted 
+# and undirected graph whose nodes are represented by the expanded gene lists
+#-------------------------------------------------------------------------------
+#
+ListMatrix<-function(all.genes) {
+  #
+  unique.lists<-unique(Exper_list$list.name)
+  NL<-length(unique.lists)
+  list.matrix<-matrix(data=0,nrow=NL,ncol=NL)
+  rownames(list.matrix)<-unique.lists
+  colnames(list.matrix)<-unique.lists
+  df<-subset.data.frame(all.genes,list.count>1)
+  if (nrow(df)>0) {
+    for (i in 1:(NL-1)) {
+      for (j in (i+1):NL) {
+        for (k in 1:nrow(df)) {
+          test.vec<-stringr::str_split(df$list.name[k],"/")[[1]]
+          if (unique.lists[i]%in%test.vec&unique.lists[j]%in%test.vec) {
+            list.matrix[i,j]<-list.matrix[i,j]+1
+            list.matrix[j,i]<-list.matrix[j,i]+1
+          }
+        }
+      }  
+    }  
+  } 
+  #
+  # Add elements on the diagonal
+  #
+  if (nrow(all.genes)>0) {
+    for (i in 1:NL) {
+      for (k in 1:nrow(all.genes)) {
+        test.vec<-stringr::str_split(all.genes$list.name[k],"/")[[1]]
+        if (unique.lists[i]%in%test.vec) {
+          list.matrix[i,i]<-list.matrix[i,i]+1
+        }
+      }
+    }  
+  } 
+  #
+  return(list.matrix)
 }
 #
 #-------------------------------------------------------------------------------
@@ -457,19 +848,20 @@ ORA.fun<-function(all.genes,top.results,list.number) {
     index<-which(GO_results@result$ID%in%ORA$ID)
     GO_results@result<-GO_results@result[index,]
     options(ggrepel.max.overlaps = 1000)
-    tiff("Output/ORA/GO/GO_ORA_goplot.tiff",width=20,height=8,units="in",res=600,compression="lzw")
+    tiff("PF_output/ORA/GO/GO_ORA_goplot.tiff",width=20,height=8,units="in",res=600,compression="lzw")
     p<-goplot(GO_results,showCategory=10)
     print(p)
     dev.off()
     #
     # Save a jpeg version too
     #
-    img<-image_read("Output/ORA/GO/GO_ORA_goplot.tiff")
-    image_write(img,path="Output/ORA/GO/GO_ORA_goplot.jpeg",format="jpeg")
+    img<-image_read("PF_output/ORA/GO/GO_ORA_goplot.tiff")
+    image_write(img,path="PF_output/ORA/GO/GO_ORA_goplot.jpeg",format="jpeg")
     #
-    tiff("Output/ORA/GO/GO_ORA_cnetplot.tiff",width=20,height=20,units="in",res=600,compression="lzw")
-    GO_results@result$geneID <- ORA$gene.name[match(GO_results@result$ID, ORA$ID)] # use gene symbols for this plot
-    p<-cnetplot(GO_results,showCategory=10,layout="fr") +
+    tiff("PF_output/ORA/GO/GO_ORA_cnetplot.tiff",width=20,height=20,units="in",res=600,compression="lzw")
+    index<-which(ORA$ID%in%GO_results@result$ID)
+    GO_results@result$geneID<-ORA$gene.name[index] # use gene symbols for this plot
+    p<-cnetplot(GO_results,showCategory=10,circular=T,colorEdge=T,layout="fr") +
       ggplot2::theme_minimal() +
       ggplot2::theme(legend.position = "bottom") +
       ggtitle("Top Enriched GO Terms and Genes")
@@ -478,8 +870,8 @@ ORA.fun<-function(all.genes,top.results,list.number) {
     #
     # Save a jpeg version too
     #
-    img<-image_read("Output/ORA/GO/GO_ORA_cnetplot.tiff")
-    image_write(img,path="Output/ORA/GO/GO_ORA_cnetplot.jpeg",format="jpeg")
+    img<-image_read("PF_output/ORA/GO/GO_ORA_cnetplot.tiff")
+    image_write(img,path="PF_output/ORA/GO/GO_ORA_cnetplot.jpeg",format="jpeg")
   }
   #
   return(ORA)
@@ -496,11 +888,11 @@ Tissue.ORA<-function(all.genes) {
   seEnrichmentOutput<-output[[1]]
   enrichmentOutput<-setNames(data.frame(assay(seEnrichmentOutput),row.names = rowData(seEnrichmentOutput)[,1]), colData(seEnrichmentOutput)[,1])
   enrichmentOutput$Tissue<-row.names(enrichmentOutput)
-  enrichmentOutput$p.adjust<-10^-enrichmentOutput$Log10PValue # it is adjusted!
+  enrichmentOutput$p.ajust<-10^-enrichmentOutput$Log10PValue
   #
   # plot
   #
-  tiff("Output/ORA/Tissue_ORA.tiff",width=10,height=6,units="in",res=600,compression="lzw")
+  tiff("PF_output/ORA/Tissue_ORA.tiff",width=10,height=6,units="in",res=600,compression="lzw")
   p<-ggplot(enrichmentOutput,aes(x=reorder(Tissue,-Log10PValue),y=Log10PValue,
                               label = Tissue.Specific.Genes,fill = Tissue))+
     geom_bar(stat = 'identity')+
@@ -517,10 +909,8 @@ Tissue.ORA<-function(all.genes) {
   #
   # Save a jpeg version too
   #
-  img<-image_read("Output/ORA/Tissue_ORA.tiff")
-  image_write(img,path="Output/ORA/Tissue_ORA.jpeg",format="jpeg")
-  #
-  return(enrichmentOutput)
+  img<-image_read("PF_output/ORA/Tissue_ORA.tiff")
+  image_write(img,path="PF_output/ORA/Tissue_ORA.jpeg",format="jpeg")
 }
 #
 #-------------------------------------------------------------------------------
@@ -540,4 +930,55 @@ if (!file.exists(file.name)) {
 } else {
   myuniverse<-fread(file.name)
   myuniverse<-as.character(myuniverse$x)
+}
+#
+#-------------------------------------------------------------------------------
+# For each gene calculate a score from interaction with genes of Disease Module
+#-------------------------------------------------------------------------------
+# 
+ScoreME<-function(mygenes) {
+  #
+  # Edit
+  #
+  mygenes$score<-rep(NA,nrow(mygenes))
+  mygenes$interacting<-rep(NA,nrow(mygenes))
+  #
+  # Find interacting genes
+  #
+  mygenes.list<-list()
+  for (i in 1:nrow(mygenes)) {
+    print(paste("Working on gene",i))
+    mygenes.list[[i]]<-STRING2(mygenes$name[i])
+    df<-data.frame(name=mygenes$name[i],score=1)
+    mygenes.list[[i]]<-rbind(mygenes.list[[i]],df)
+  }
+  #
+  # Compare interacting genes with Disease Module:
+  # assign zero to interacting genes not listed in Disease Module
+  #
+  for (i in 1:nrow(mygenes)) {
+    index<-which(!mygenes.list[[i]]$name%in%Disease_module$name)
+    mygenes.list[[i]]$score[index]<-rep(0,length(index))
+  }
+  #
+  # Assign a score to candidate genes and indicate relevant interacting genes
+  #
+  for (i in 1:nrow(mygenes)) {
+    N<-nrow(mygenes.list[[i]])
+    mygenes$score[i]<-sum(mygenes.list[[i]]$score)/N
+  }
+  #
+  # Add interacting genes included in Disease Module
+  #
+  for (i in 1:nrow(mygenes)) {
+    index<-which(mygenes.list[[i]]$name%in%Disease_module$name)
+    mygenes.list[[i]]<-mygenes.list[[i]][index,]
+    mygenes$interacting[i]<-paste0(mygenes.list[[i]]$name,collapse="/")
+  }
+  #
+  # Order by score
+  #
+  mygenes<-mygenes[order(mygenes$score,decreasing=T), ]
+  #
+  return(mygenes)
 }
