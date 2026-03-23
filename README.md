@@ -86,7 +86,7 @@ We used Gene Ontology Cellular Component (GO CC) to further specify the result o
 | GO:0031594 | neuromuscular junction                           | 8/350     | 1.27e-04        | 0.00608         | 
 | GO:0071339 | MLL1 complex                                    | 5/350     | 2.91e-04        | 0.0125          | 
 
-<img src="Output/ORA/GO enrichment.jpeg" width="600"/>
+<img src="Output/ORA/GO enrichment.jpeg" width="800"/>
 <p align="left">
   <em>Figure 3. Gene Ontology Cellular Component over-representation analysis of the 369 genes of Figure 1, with a background universe of 19699 genes. Top ten results, after Benjamini-Hochberg correction. See ORA_Disease_Module.tsv for the full list of significant results. </em>
 </p>
@@ -103,6 +103,8 @@ Over-representation analysis (ORA) with the Disease Ontology database identifies
 ORA on KEGG identifies `Spincerebellar ataxia` as top enrichment (see Figure 4).
 
 <img width="1467" height="1736" alt="hsa05017 Disease_ORA" src="https://github.com/user-attachments/assets/34455da4-8886-4197-b516-a5c1dbaab432" />
+
+<img src="Output/ORA/KEGG/hsa05017.Disease_ORA.png" width="800"/>
 <p align="left">
   <em>Figure 4. Top over-representation analysis on KEGG. Nodes in red indicate the overlap with the disease module of 369 genes. See ORA_Disease_Module.tsv for the full list of significant results. </em>
 </p>
